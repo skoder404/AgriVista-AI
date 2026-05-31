@@ -46,8 +46,8 @@ firebase-debug.log
 firestore-debug.log
 
 
-# dataset
-api/classifier/indian_breed_classifier/
+# dataset - breed name folders must be committed so the model works on any device
+# api/classifier/indian_breed_classifier/
 
 # python cache
 __pycache__/
@@ -57,3 +57,5 @@ __pycache__/
 filelist.txt
 abs_search.txt
 temp_upload.jpg
+temp_repo/
+repo_files.txt
