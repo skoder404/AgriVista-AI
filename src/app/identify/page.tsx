@@ -47,6 +47,8 @@ export default function IdentifyPage() {
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  const [apiBreedResult, setApiBreedResult] =
+    useState<{ breed: string; confidence: number } | null>(null);
   const [breedResult, setBreedResult] =
     useState<IdentifyCattleBreedOutput | null>(null);
   const [healthReport, setHealthReport] =
@@ -57,6 +59,7 @@ export default function IdentifyPage() {
   const [age, setAge] = useState<string>("");
 
   const [loadingStates, setLoadingStates] = useState({
+    apiBreed: false,
     breed: false,
     health: false,
     value: false,
@@ -70,6 +73,7 @@ export default function IdentifyPage() {
         const dataUri = e.target?.result as string;
         setImagePreview(dataUri);
         // Reset results when new image is uploaded
+        setApiBreedResult(null);
         setBreedResult(null);
         setHealthReport(null);
         setMarketValue(null);
@@ -85,16 +89,33 @@ export default function IdentifyPage() {
       return;
     }
     startTransition(async () => {
+      setApiBreedResult(null);
       setBreedResult(null);
       setHealthReport(null);
       setMarketValue(null);
       setLoadingStates({
+        apiBreed: true,
         breed: true,
         health: true,
         value: false,
       });
 
       try {
+        const apiBreedPromise = fetch("/api/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photoDataUri: imagePreview }),
+        })
+          .then(async (res) => {
+            if (!res.ok) throw new Error("API Predict failed");
+            const data = await res.json();
+            return { breed: data.predicted_breed, confidence: data.confidence };
+          })
+          .catch((err) => {
+            console.error("Local API predict error:", err);
+            return null; // Don't throw, just return null so Gemini still works
+          });
+
         const breedPromise = identifyCattleBreed({
           photoDataUri: imagePreview,
         });
@@ -103,8 +124,13 @@ export default function IdentifyPage() {
           photoDataUri: imagePreview,
         });
 
-        const [breedRes, healthRes] = await Promise.all([breedPromise, healthPromise]);
+        const [apiBreedRes, breedRes, healthRes] = await Promise.all([
+          apiBreedPromise,
+          breedPromise,
+          healthPromise,
+        ]);
         
+        if (apiBreedRes) setApiBreedResult(apiBreedRes);
         setBreedResult(breedRes);
         setHealthReport(healthRes);
 
@@ -120,6 +146,7 @@ export default function IdentifyPage() {
         });
       } finally {
           setLoadingStates({
+            apiBreed: false,
             breed: false,
             health: false,
             value: false,
@@ -162,7 +189,7 @@ export default function IdentifyPage() {
 
   const anyLoading =
     Object.values(loadingStates).some((s) => s) || isPending;
-  const analysisStarted = Boolean(breedResult || healthReport || anyLoading);
+  const analysisStarted = Boolean(apiBreedResult || breedResult || healthReport || anyLoading);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -221,12 +248,12 @@ export default function IdentifyPage() {
                 disabled={!imagePreview || anyLoading}
                 className="w-full"
               >
-                {loadingStates.breed || loadingStates.health ? (
+                {loadingStates.apiBreed || loadingStates.breed || loadingStates.health ? (
                   <Loader2 className="animate-spin" />
                 ) : (
                   <Sparkles className="mr-2 h-4 w-4" />
                 )}
-                {loadingStates.breed || loadingStates.health
+                {loadingStates.apiBreed || loadingStates.breed || loadingStates.health
                   ? t("identify.analyzingButton")
                   : t("identify.startAnalysisButton")}
               </Button>
@@ -250,7 +277,8 @@ export default function IdentifyPage() {
             </Card>
           )}
 
-          {(loadingStates.breed || loadingStates.health) &&
+          {(loadingStates.apiBreed || loadingStates.breed || loadingStates.health) &&
+            !apiBreedResult &&
             !breedResult &&
             !healthReport && (
               <Card>
@@ -261,32 +289,59 @@ export default function IdentifyPage() {
               </Card>
             )}
 
-          {breedResult && (
+          {(apiBreedResult || breedResult) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BrainCircuit className="text-primary" />
-                  {t("identify.step2Title")}
+                  {t("identify.step2Title")} (Comparison)
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <p className="text-muted-foreground">
-                    {t("identify.identifiedBreed")}
-                  </p>
-                  <p className="text-lg font-bold">{breedResult.breed}</p>
+              <CardContent className="space-y-6">
+                {/* Trained Model Result */}
+                <div className="space-y-4 border rounded-lg p-4 bg-muted/50">
+                  <h4 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+                    Trained Model (Local API)
+                  </h4>
+                  {apiBreedResult ? (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <p className="text-muted-foreground">Identified Breed</p>
+                        <p className="text-lg font-bold">{apiBreedResult.breed}</p>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="text-muted-foreground">Confidence Score</p>
+                        <Badge variant={apiBreedResult.confidence > 0.8 ? "default" : "secondary"}>
+                          {(apiBreedResult.confidence * 100).toFixed(0)}%
+                        </Badge>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-destructive">Failed to fetch local API result.</p>
+                  )}
                 </div>
-                <div className="flex justify-between items-center">
-                  <p className="text-muted-foreground">
-                    {t("identify.confidenceScore")}
-                  </p>
-                  <Badge
-                    variant={
-                      breedResult.confidence > 0.8 ? "default" : "secondary"
-                    }
-                  >
-                    {(breedResult.confidence * 100).toFixed(0)}%
-                  </Badge>
+
+                {/* Gemini AI Result */}
+                <div className="space-y-4 border rounded-lg p-4 bg-muted/50">
+                  <h4 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+                    Gemini AI Analysis
+                  </h4>
+                  {breedResult ? (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <p className="text-muted-foreground">{t("identify.identifiedBreed")}</p>
+                        <p className="text-lg font-bold">{breedResult.breed}</p>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="text-muted-foreground">{t("identify.confidenceScore")}</p>
+                        <Badge variant={breedResult.confidence > 0.8 ? "default" : "secondary"}>
+                          {(breedResult.confidence * 100).toFixed(0)}%
+                        </Badge>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-destructive">Failed to fetch Gemini AI result.</p>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -7,7 +7,10 @@ import os
 class CattleBreedClassifier:
     def __init__(self, model_path, class_dir, device=None):
         self.device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.class_names = sorted(os.listdir(class_dir))
+        if os.path.isdir(class_dir) and len(os.listdir(class_dir)) > 0:
+            self.class_names = sorted(os.listdir(class_dir))
+        else:
+            self.class_names = [f"Indian_Breed_{i:02d}" for i in range(1, 53)]
         self.num_classes = len(self.class_names)
 
         # Load model

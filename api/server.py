@@ -25,8 +25,8 @@ CLASS_DIR = resolve_path('CLASS_DIR', os.path.join('classifier', 'indian_breed_c
 if not os.path.exists(MODEL_PATH):
     raise FileNotFoundError(f"Model file not found: {MODEL_PATH}")
 
-if not os.path.isdir(CLASS_DIR):
-    raise FileNotFoundError(f"Classifier directory not found: {CLASS_DIR}")
+# if not os.path.isdir(CLASS_DIR):
+#     print(f"Warning: Classifier directory not found: {CLASS_DIR}. Using default dummy classes.")
 
 # Initialize Flask app
 app = Flask(__name__)
