@@ -1,0 +1,59 @@
+'use server';
+
+/**
+ * @fileOverview A cattle breed identification AI agent.
+ *
+ * - identifyCattleBreed - A function that handles the cattle breed identification process.
+ * - IdentifyCattleBreedInput - The input type for the identifyCattleBreed function.
+ * - IdentifyCattleBreedOutput - The return type for the identifyCattleBreed function.
+ */
+
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
+
+const IdentifyCattleBreedInputSchema = z.object({
+  photoDataUri: z
+    .string()
+    .describe(
+      "A photo of cattle, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+    ),
+});
+export type IdentifyCattleBreedInput = z.infer<typeof IdentifyCattleBreedInputSchema>;
+
+const IdentifyCattleBreedOutputSchema = z.object({
+  breed: z.string().describe('The identified breed of the cattle.'),
+  confidence: z
+    .number()
+    .describe('The confidence level of the breed identification (0-1).'),
+});
+export type IdentifyCattleBreedOutput = z.infer<typeof IdentifyCattleBreedOutputSchema>;
+
+export async function identifyCattleBreed(
+  input: IdentifyCattleBreedInput
+): Promise<IdentifyCattleBreedOutput> {
+  return identifyCattleBreedFlow(input);
+}
+
+const prompt = ai.definePrompt({
+  name: 'identifyCattleBreedPrompt',
+  input: {schema: IdentifyCattleBreedInputSchema},
+  output: {schema: IdentifyCattleBreedOutputSchema},
+  prompt: `You are an expert in identifying cattle breeds. Analyze the image provided to determine the breed of the cattle.
+
+  Provide the breed name and a confidence level (0-1) for your identification.
+
+  Cattle Image: {{media url=photoDataUri}}`,
+  model: 'googleai/gemini-2.5-flash',
+});
+
+const identifyCattleBreedFlow = ai.defineFlow(
+  {
+    name: 'identifyCattleBreedFlow',
+    inputSchema: IdentifyCattleBreedInputSchema,
+    outputSchema: IdentifyCattleBreedOutputSchema,
+  },
+  async input => {
+    const {output} = await prompt(input);
+    return output!;
+  }
+);

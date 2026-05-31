@@ -1,0 +1,76 @@
+{
+  "placeholderImages": [
+    {
+      "id": "home-hero-cow",
+      "description": "A majestic Indian cow in a lush green field under a clear blue sky, looking at the camera. The style should be a high-quality, vibrant photograph.",
+      "imageUrl": "https://picsum.photos/seed/101/1200/800",
+      "imageHint": "indian cow"
+    },
+    {
+      "id": "identify-cow-placeholder",
+      "description": "A placeholder graphic inviting users to upload a cow photo",
+      "imageUrl": "https://picsum.photos/seed/2/600/400",
+      "imageHint": "cattle farm"
+    },
+    {
+      "id": "contribute-cow",
+      "description": "A local Indian cow breed in a rural setting",
+      "imageUrl": "https://picsum.photos/seed/3/600/400",
+      "imageHint": "gir cow"
+    },
+    {
+      "id": "expert-avatar-1",
+      "description": "Avatar for a male veterinary expert",
+      "imageUrl": "https://picsum.photos/seed/4/100/100",
+      "imageHint": "indian man portrait"
+    },
+    {
+      "id": "expert-avatar-2",
+      "description": "Avatar for a female veterinary expert",
+      "imageUrl": "https://picsum.photos/seed/5/100/100",
+      "imageHint": "indian woman portrait"
+    },
+    {
+      "id": "expert-avatar-3",
+      "description": "Avatar for a male breed specialist",
+      "imageUrl": "https://picsum.photos/seed/6/100/100",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "gir-cow-1",
+      "description": "A healthy Gir cow for sale in a marketplace",
+      "imageUrl": "https://picsum.photos/seed/11/600/400",
+      "imageHint": "gir cow"
+    },
+    {
+      "id": "gir-cow-2",
+      "description": "A healthy Gir cow for sale in a marketplace",
+      "imageUrl": "https://picsum.photos/seed/12/600/400",
+      "imageHint": "gir cow field"
+    },
+    {
+      "id": "sahiwal-cow-1",
+      "description": "A healthy Sahiwal cow for sale in a marketplace",
+      "imageUrl": "https://picsum.photos/seed/13/600/400",
+      "imageHint": "sahiwal cow"
+    },
+    {
+      "id": "sahiwal-cow-2",
+      "description": "A healthy Sahiwal cow for sale in a marketplace",
+      "imageUrl": "https://picsum.photos/seed/14/600/400",
+      "imageHint": "sahiwal cow farm"
+    },
+    {
+      "id": "red-sindhi-cow-1",
+      "description": "A healthy Red Sindhi cow for sale in a marketplace",
+      "imageUrl": "https://picsum.photos/seed/15/600/400",
+      "imageHint": "red sindhi cow"
+    },
+    {
+      "id": "tharparkar-cow-1",
+      "description": "A healthy Tharparkar cow for sale in a marketplace",
+      "imageUrl": "https://picsum.photos/seed/16/600/400",
+      "imageHint": "tharparkar cow"
+    }
+  ]
+}
